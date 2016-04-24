@@ -31,6 +31,23 @@ body <- dashboardBody(
   tabItems(
     
     tabItem(tabName = "dashboard",
+            sidebarLayout(
+              
+              sidebarPanel(
+                textInput("ID", "ID:",placeholder= "Stock Number"),#placeholder IE8 9not support change use label
+                # selectInput("dataset", "Choose a dataset:",choices = c("2317", "3474", "4938")),
+                numericInput("obs", "Number of observations to view:", 10)
+              ),
+              
+              # Show a summary of the dataset and an HTML table with the
+              # requested number of observations
+              mainPanel(
+                # h3(textOutput("ID", container = span)),#server used input$ID
+                # verbatimTextOutput("summary"),
+                tableOutput("view")
+              )
+            ),
+            
             fluidRow(
               box(plotOutput("plot2")),
               
@@ -62,8 +79,15 @@ body <- dashboardBody(
 ui <- dashboardPage(header,sidebar,body)
 
 server <- function(input, output) {
-  set.seed(122)
-  histdata <- rnorm(500)
+  
+  datasetInput <- reactive({
+    getStockData(input$ID,"2010-01-01","2016-04-17",autofrom=120)
+    get(paste0("TW.",input$ID))
+  })
+  
+  output$view <- renderTable({
+    tail(datasetInput(), n = input$obs)
+  })
   
   output$plot2 <- renderPlot({
     data2<-`2317.TW`[input$slider1:nrow(`2317.TW`)]
